@@ -42,7 +42,7 @@ enum RendererType
 };
 extern struct GLEQevent;
 void printEvents(const GLEQevent& event);
-int convertGleqToGlfwEvent(int action) { return 0;  }
+int convertGleqToGlfwEvent(int type);
 
 void defaultEventHandler(GLFWwindow* window, const GLEQevent& event);
 

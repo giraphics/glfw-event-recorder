@@ -195,17 +195,17 @@ void printEvents(const GLEQevent& event)
     }
 }
 
-//int convertGleqToGlfwEvent(int type)
-//{
-//    switch (type)
-//    {
-//        case GLEQ_KEY_PRESSED: return GLFW_PRESS;
-//        case GLEQ_KEY_RELEASED: return GLFW_RELEASE;
-//        case GLEQ_KEY_REPEATED: return GLFW_REPEAT;
-//    }
-//
-//    return 0xFFFFFFFF;
-//}
+int convertGleqToGlfwEvent(int type)
+{
+    switch (type)
+    {
+        case GLEQ_KEY_PRESSED: return GLFW_PRESS;
+        case GLEQ_KEY_RELEASED: return GLFW_RELEASE;
+        case GLEQ_KEY_REPEATED: return GLFW_REPEAT;
+    }
+    
+    return 0xFFFFFFFF;
+}
 
 void defaultEventHandler(GLFWwindow* window, const GLEQevent& event)
 {
