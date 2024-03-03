@@ -33,6 +33,7 @@
 using namespace std;
 
 #define UNUSED(expr) (void)(expr)
+struct GLEQevent;
 
 enum RendererType
 {
@@ -40,7 +41,7 @@ enum RendererType
     RECORD_LOG,         // Record the event in log
     PLAYBACK_LOG        // Playback the log
 };
-extern struct GLEQevent;
+
 void printEvents(const GLEQevent& event);
 int convertGleqToGlfwEvent(int type);
 
