@@ -205,6 +205,8 @@ int convertGleqToGlfwEvent(int type)
         case GLEQ_KEY_PRESSED: return GLFW_PRESS;
         case GLEQ_KEY_RELEASED: return GLFW_RELEASE;
         case GLEQ_KEY_REPEATED: return GLFW_REPEAT;
+        case GLEQ_BUTTON_PRESSED: return GLFW_PRESS;
+        case GLEQ_BUTTON_RELEASED: return GLFW_RELEASE;
     }
     
     return 0xFFFFFFFF;
