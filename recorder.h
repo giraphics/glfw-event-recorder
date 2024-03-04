@@ -42,6 +42,31 @@ enum RendererType
     PLAYBACK_LOG        // Playback the log
 };
 
+class ParseArguments {
+public:
+    bool help = false;                          // Show usage
+    RendererType type = RendererType::NONE;     // Type of rendering operation
+    std::string filename;                       // Playback or Recording filename
+    std::string exec_name;                      // Name of the executable with extension
+
+public:
+    // Static member function to access the singleton instance
+    static ParseArguments& getInstance() {
+        static ParseArguments instance; // This is instantiated only once
+        return instance;
+    }
+
+    int parseArguments(int argc, char* argv[]);
+private:
+    // Private constructor and destructor to prevent instantiation and deletion
+    ParseArguments() {} // Private constructor
+    ~ParseArguments() {} // Private destructor
+
+    // Private copy constructor and assignment operator to prevent copying
+    ParseArguments(const ParseArguments&);
+    ParseArguments& operator=(const ParseArguments&);
+};
+
 void printEvents(const GLEQevent& event);
 int convertGleqToGlfwEvent(int type);
 
@@ -52,11 +77,12 @@ int playbackFromLogFile(GLFWwindow* window, std::string file, const std::functio
 
 void render(GLFWwindow* window, const std::function<void()>& updateAndDraw, const std::function<void(GLEQevent)>& userEventHandler, RendererType type, std::string file = "data.bin");
 
-void saveTga(std::string filename, unsigned int width, unsigned int height);
 int savePng(std::string filename, unsigned int width, unsigned int height);
 int saveScreenshotToFileOrig(std::string filename, unsigned int width, unsigned int height);
 std::string getExecutableName(const char* fullPath);
 bool createDirectory(const std::string& foldername);
 bool directoryExists(const std::string& foldername);
+
+void parseArguments(int argc, char* argv[]);
 #endif /* GLFW_LOGGER_HEADER_FILE */
 

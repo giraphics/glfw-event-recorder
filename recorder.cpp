@@ -481,3 +481,44 @@ bool createDirectory(const std::string& foldername)
     }
     return false;
 }
+
+int ParseArguments::parseArguments(int argc, char* argv[])
+{
+    ParseArguments& args = ParseArguments::getInstance();
+    args.exec_name = argv[0];
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+
+        if (arg == "-h" || arg == "--help") {
+            args.help = true;
+        }
+        else if (arg == "-r" || arg == "--help") {
+            args.type = RendererType::RECORD_LOG;
+        }
+        else if (arg == "-p" || arg == "--help") {
+            args.type = RendererType::PLAYBACK_LOG;
+        }
+        else if (arg == "-f" || arg == "--file") {
+            if (i + 1 < argc) {
+                args.filename = argv[++i];
+            }
+            else {
+                std::cerr << "Error: No filename provided after -f option." << std::endl;
+                args.help = true; // Display help if filename is missing
+            }
+        }
+    }
+
+    if (args.help) {
+        std::cout << "Usage: " << args.exec_name << " [-h] [-f <filename>]" << " [-r ]" << " [-p ]" << std::endl;
+        std::cout << "Options:" << std::endl;
+        std::cout << "  -h, --help     Display this help message" << std::endl;
+        std::cout << "  -f, --file     Specify a record or playback filename" << std::endl;
+        std::cout << "  -r, --record   Render the executable and record event into log file" << std::endl;
+        std::cout << "  -p, --play     Render the executable and playback the event from log file" << std::endl;
+        return 0;
+    }
+
+    return 1;
+}
