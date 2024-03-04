@@ -29,6 +29,9 @@
 #include <thread>
 #include <fstream>
 #include <iostream>
+#include <direct.h> // For _mkdir()
+#include <io.h>     // For _access()
+
 #include "lodepng.h" // Include the LodePNG library
 
 #define GLEQ_IMPLEMENTATION
@@ -366,6 +369,8 @@ void saveTga(std::string filename, unsigned int width, unsigned int height) {
 }
 
 int savePng(std::string filename, unsigned int width, unsigned int height) {
+    std::string foldername = "screeshots";
+    createDirectory(foldername);
 
     // Create a vector to store pixel data (RGBA format)
     std::vector<unsigned char> image;
@@ -398,7 +403,7 @@ int savePng(std::string filename, unsigned int width, unsigned int height) {
     short header[] = { 0, 2, 0, 0, 0, 0, (short)width, (short)height, 24 };
 
     // Encode the pixel data into a PNG file
-    unsigned error = lodepng::encode(filename, image, width, height);
+    unsigned error = lodepng::encode(foldername + "/" + filename, image, width, height);
 
     // Check for encoding errors
     if (error) {
@@ -438,4 +443,41 @@ int saveScreenshotToFileOrig(std::string filename, unsigned int width, unsigned 
 
     std::cout << "PNG file created successfully! "<< width << "x" << height << std::endl;
     return 0;
+}
+
+std::string getExecutableName(const char* fullPath) {
+#ifdef _WIN32
+    // Extract only the file name from the full path
+    std::string path(fullPath);
+    size_t lastSlash = path.find_last_of("\\/");
+    if (lastSlash != std::string::npos) {
+        return path.substr(lastSlash + 1);
+    }
+#endif
+    // If not running on Windows, return the original string
+    return fullPath;
+}
+
+bool directoryExists(const std::string& foldername) {
+    return (_access(foldername.c_str(), 0) == 0);
+}
+
+bool createDirectory(const std::string& foldername)
+{
+    if (directoryExists(foldername)) {
+        std::cout << "Directory already exists." << std::endl;
+        return true;
+    }
+
+    int status = _mkdir(foldername.c_str());
+
+    // Check if directory creation was successful
+    if (status == 0) {
+        std::cout << "Directory created successfully." << std::endl;
+        return true;
+    }
+    else {
+        std::cerr << "Error: Failed to create directory." << std::endl;
+    }
+    return false;
 }

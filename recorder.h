@@ -55,5 +55,8 @@ void render(GLFWwindow* window, const std::function<void()>& updateAndDraw, cons
 void saveTga(std::string filename, unsigned int width, unsigned int height);
 int savePng(std::string filename, unsigned int width, unsigned int height);
 int saveScreenshotToFileOrig(std::string filename, unsigned int width, unsigned int height);
+std::string getExecutableName(const char* fullPath);
+bool createDirectory(const std::string& foldername);
+bool directoryExists(const std::string& foldername);
 #endif /* GLFW_LOGGER_HEADER_FILE */
 
