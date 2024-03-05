@@ -26,6 +26,7 @@
 
 #include <chrono>
 #include <vector>
+#include <list>
 #include <thread>
 #include <fstream>
 #include <iostream>
@@ -216,6 +217,35 @@ void defaultEventHandler(GLFWwindow* window, const GLEQevent& event)
 {
     switch (event.type)
     {
+    case GLEQ_KEY_PRESSED:
+        if (event.keyboard.key == GLFW_KEY_PRINT_SCREEN) {
+            static int screenshot_count = 0;
+            const std::string& fileName =
+                getExecutableName(ParseArguments::getInstance().exec_name.c_str()) +
+                "_" +
+                std::to_string(screenshot_count++) +
+                ".png";
+
+            int width = 0; int height = 0;
+            glfwGetFramebufferSize(window, &width, &height);
+            savePng(fileName, width, height);
+
+            std::cout << "png saved" << std::endl;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    // The below event are recursive in nature. 
+    // For example, a window move handle will spwan same event
+    if (ParseArguments::getInstance().type == RendererType::RECORD_LOG) {
+        return;
+    }
+
+    switch (event.type)
+    {
     case GLEQ_WINDOW_MOVED:
         glfwSetWindowPos(window, event.pos.x, event.pos.y);
         break;
@@ -272,6 +302,7 @@ int recordIntoLogFile(GLFWwindow* window, std::string file, const std::function<
             outFile.write(reinterpret_cast<const char*>(&event), sizeof(TimeStampEvent));
             totalEventCount++;
 
+            defaultEventHandler(window, event.event);
             eventHandlerImpl(event.event);
 
             gleqFreeEvent(&event.event);
@@ -283,7 +314,8 @@ int recordIntoLogFile(GLFWwindow* window, std::string file, const std::function<
     return 0;
 }
 
-int playbackFromLogFile(GLFWwindow* window, std::string file, const std::function<void()>& updateAndDraw, const std::function<void(GLEQevent)>& userEventHandler)
+// Retire this 
+int playbackFromLogFileOldImplementation(GLFWwindow* window, std::string file, const std::function<void()>& updateAndDraw, const std::function<void(GLEQevent)>& userEventHandler)
 {
     ifstream inFile(file, ios::binary);
     if (!inFile) {
@@ -331,6 +363,86 @@ int playbackFromLogFile(GLFWwindow* window, std::string file, const std::functio
         userEventHandler(it->event);
         
         updateAndDraw();
+    }
+
+    return 0;
+}
+
+int playbackFromLogFile(GLFWwindow* window, std::string file, const std::function<void()>& updateAndDraw, const std::function<void(GLEQevent)>& userEventHandler)
+{
+    ifstream inFile(file, ios::binary);
+    if (!inFile) {
+        cerr << "Error opening file!" << endl;
+        return 1;
+    }
+
+    // Determine the size of the file
+    inFile.seekg(0, ios::end);
+    streampos fileSize = inFile.tellg();
+    inFile.seekg(0, ios::beg);
+
+    // Allocate memory to store the read data
+    vector<TimeStampEvent> messageQueueVec(fileSize / sizeof(TimeStampEvent));
+
+    // Read the data from the file into the allocated memory
+    inFile.read(reinterpret_cast<char*>(&messageQueueVec[0]), fileSize);
+
+    std::list<TimeStampEvent> messageQueue(messageQueueVec.begin(), messageQueueVec.end());
+
+    
+    int totalEventCount = 0;
+
+    std::time_t lastEventTime = time(NULL);
+    std::time_t nextEventTime = time(NULL);
+    std::time_t nowtimeStamp = time(NULL);
+    std::time_t futuretimeStamp = time(NULL);
+
+    std::list<TimeStampEvent>::iterator it = messageQueue.begin();
+    lastEventTime = it->timeStamp;
+    nextEventTime = it->timeStamp;
+
+    std::cout << "Opening file events recorded: " << std::endl;
+    bool processEvent = true;
+    while (!messageQueue.empty()) {
+        {
+            auto currentTime = std::chrono::system_clock::now();
+            nowtimeStamp = std::chrono::system_clock::to_time_t(currentTime);
+
+            // Check if the future timestamp is reached, if yes process 
+            processEvent = (nowtimeStamp >= futuretimeStamp);
+        }
+
+        ++totalEventCount;
+        // printEvents(it->event);
+
+        updateAndDraw();
+
+        if (processEvent) {
+            processEvent = false;
+
+            // Handle events
+            defaultEventHandler(window, it->event);
+            userEventHandler(it->event);
+
+            // Remove the message from queue top
+            messageQueue.pop_front();
+
+            // Get the next message from the queue
+            it = messageQueue.begin();
+
+            // If the message queue is empty return
+            if (it == messageQueue.end()) break;
+
+            // Compute the difference between the current and next event
+            nextEventTime = it->timeStamp;
+            std::chrono::duration<double> difference{ (nextEventTime - lastEventTime) };
+            lastEventTime = nextEventTime;
+
+            // Use the difference interval and compute the future time when the next event would be fired
+            auto futureTime = std::chrono::system_clock::now() + difference;
+            auto futureTimePoint = std::chrono::time_point_cast<std::chrono::seconds>(futureTime);
+            futuretimeStamp = std::chrono::system_clock::to_time_t(futureTimePoint);
+        }
     }
 
     return 0;
