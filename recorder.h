@@ -32,19 +32,24 @@
 
 using namespace std;
 
+// Macro to suppress unused variable warnings
 #define UNUSED(expr) (void)(expr)
+
+// Forward declaration of GLEQevent struct
 struct GLEQevent;
 
+// Enumeration defining different types of rendering operations
 enum RendererType
 {
-    NONE,               // No Recording, No playback
-    RECORD_LOG,         // Record the event in log
+    NONE,               // No recording, No playback
+    RECORD_LOG,         // Record the event in a log
     PLAYBACK_LOG        // Playback the log
 };
 
+// Class for parsing command line arguments
 class ParseArguments {
 public:
-    bool help = false;                          // Show usage
+    bool help = false;                          // Flag to show usage
     RendererType type = RendererType::NONE;     // Type of rendering operation
     std::string filename;                       // Playback or Recording filename
     std::string exec_name;                      // Name of the executable with extension
@@ -67,23 +72,43 @@ private:
     ParseArguments& operator=(const ParseArguments&);
 };
 
+// Function to print GLEQevent data
 void printEvents(const GLEQevent& event);
+
+// Function to convert GLEQevent type to GLFW event type
 int convertGleqToGlfwEvent(int type);
 
+// Default event handler function
 void defaultEventHandler(GLFWwindow* window, const GLEQevent& event);
 
+// Function to record events into a log file
 int recordIntoLogFile(GLFWwindow* window, std::string file, const std::function<void()>& lambda, const std::function<void(GLEQevent)>& eventHandlerImpl);
+
+// Function to playback events from a log file
 int playbackFromLogFile(GLFWwindow* window, std::string file, const std::function<void()>& updateAndDraw, const std::function<void(GLEQevent)>& userEventHandler);
+
+// Default renderer function
 int defaultRenderer(GLFWwindow* window, std::string file, const std::function<void()>& lambda, const std::function<void(GLEQevent)>& eventHandlerImpl);
 
+// Function to render based on specified parameters
 void render(GLFWwindow* window, const std::function<void()>& updateAndDraw, const std::function<void(GLEQevent)>& userEventHandler, RendererType type, std::string file = "data.bin");
 
+// Function to save an image as PNG file
 int savePng(std::string filename, unsigned int width, unsigned int height);
+
+// Function to save a screenshot to file (original implementation)
 int saveScreenshotToFileOrig(std::string filename, unsigned int width, unsigned int height);
+
+// Function to get the executable name from a full path
 std::string getExecutableName(const char* fullPath);
+
+// Function to create a directory
 bool createDirectory(const std::string& foldername);
+
+// Function to check if a directory exists
 bool directoryExists(const std::string& foldername);
 
+// Function to parse command line arguments
 void parseArguments(int argc, char* argv[]);
 #endif /* GLFW_LOGGER_HEADER_FILE */
 
