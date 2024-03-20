@@ -368,6 +368,30 @@ int playbackFromLogFileOldImplementation(GLFWwindow* window, std::string file, c
     return 0;
 }
 
+int defaultRenderer(GLFWwindow* window, std::string file, const std::function<void()>& lambda, const std::function<void(GLEQevent)>& eventHandlerImpl)
+{
+    gleqTrackWindow(window);
+
+    while (!glfwWindowShouldClose(window))
+    {
+        TimeStampEvent event;
+
+        while (gleqNextEvent(&event.event))
+        {
+            printEvents(event.event);
+
+            defaultEventHandler(window, event.event);
+            eventHandlerImpl(event.event);
+
+            gleqFreeEvent(&event.event);
+        }
+
+        lambda();
+    }
+
+    return 0;
+}
+
 int playbackFromLogFile(GLFWwindow* window, std::string file, const std::function<void()>& updateAndDraw, const std::function<void(GLEQevent)>& userEventHandler)
 {
     ifstream inFile(file, ios::binary);
@@ -457,9 +481,7 @@ void render(GLFWwindow* window, const std::function<void()>& updateAndDraw, cons
         recordIntoLogFile(window, file, updateAndDraw, userEventHandler);
     }
     else {
-        while (!glfwWindowShouldClose(window)) {
-            updateAndDraw();
-        }
+        defaultRenderer(window, file, updateAndDraw, userEventHandler);
     }
 }
 
