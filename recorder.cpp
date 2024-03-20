@@ -240,7 +240,8 @@ void defaultEventHandler(GLFWwindow* window, const GLEQevent& event)
 
     // The below event are recursive in nature. 
     // For example, a window move handle will spwan same event
-    if (ParseArguments::getInstance().type == RendererType::RECORD_LOG) {
+    if (ParseArguments::getInstance().type == RendererType::RECORD_LOG || 
+        ParseArguments::getInstance().type == RendererType::NONE) {
         return;
     }
 
