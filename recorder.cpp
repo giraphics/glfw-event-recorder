@@ -627,11 +627,26 @@ int ParseArguments::parseArguments(int argc, char* argv[])
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
 
-        if (arg == "-h" || arg == "--help") {
+        if (arg == "-a" || arg == "--help") {
             args.help = true;
         }
-        else if (arg == "-r" || arg == "--help") {
-            args.type = RendererType::RECORD_LOG;
+        else if (arg == "-w" || arg == "--width") {
+            if (i + 1 < argc) {
+                args.window_width = atoi(argv[++i]);
+            }
+            else {
+                std::cerr << "Error: No filename provided after -f option." << std::endl;
+                args.help = true; // Display help if filename is missing
+            }
+        }
+        else if (arg == "-h" || arg == "--height") {
+            if (i + 1 < argc) {
+                args.window_height = atoi(argv[++i]);
+            }
+            else {
+                std::cerr << "Error: No filename provided after -f option." << std::endl;
+                args.help = true; // Display help if filename is missing
+            }
         }
         else if (arg == "-p" || arg == "--help") {
             args.type = RendererType::PLAYBACK_LOG;
@@ -650,10 +665,12 @@ int ParseArguments::parseArguments(int argc, char* argv[])
     if (args.help) {
         std::cout << "Usage: " << args.exec_name << " [-h] [-f <filename>]" << " [-r ]" << " [-p ]" << std::endl;
         std::cout << "Options:" << std::endl;
-        std::cout << "  -h, --help     Display this help message" << std::endl;
+        std::cout << "  -a, --help     Display this help message" << std::endl;
         std::cout << "  -f, --file     Specify a record or playback filename" << std::endl;
         std::cout << "  -r, --record   Render the executable and record event into log file" << std::endl;
         std::cout << "  -p, --play     Render the executable and playback the event from log file" << std::endl;
+        std::cout << "  -w, --width    Specify window width" << std::endl;
+        std::cout << "  -h, --height   Specify window height" << std::endl;
         return 0;
     }
 

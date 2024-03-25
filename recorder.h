@@ -50,6 +50,8 @@ enum RendererType
 class ParseArguments {
 public:
     bool help = false;                          // Flag to show usage
+    int window_width = 1600;                    // Flag to specify window width
+    int window_height = 900;                    // Flag to specify window height
     RendererType type = RendererType::NONE;     // Type of rendering operation
     std::string filename;                       // Playback or Recording filename
     std::string exec_name;                      // Name of the executable with extension
