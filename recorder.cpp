@@ -648,7 +648,10 @@ int ParseArguments::parseArguments(int argc, char* argv[])
                 args.help = true; // Display help if filename is missing
             }
         }
-        else if (arg == "-p" || arg == "--help") {
+        else if (arg == "-r" || arg == "--record") {
+            args.type = RendererType::RECORD_LOG;
+        }
+        else if (arg == "-p" || arg == "--play") {
             args.type = RendererType::PLAYBACK_LOG;
         }
         else if (arg == "-f" || arg == "--file") {
