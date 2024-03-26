@@ -284,7 +284,7 @@ int recordIntoLogFile(GLFWwindow* window, std::string file, const std::function<
     gleqTrackWindow(window);
     ofstream outFile(file, ios::binary);
     if (!outFile) {
-        cerr << "Error opening file!" << endl;
+        cerr << "Error in opening log file!: " << file << endl;
         return 1;
     }
 
