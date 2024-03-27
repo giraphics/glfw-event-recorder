@@ -47,6 +47,10 @@ struct TimeStampEvent {
 
 void printEvents(const GLEQevent& event)
 {
+#ifndef _DEBUG
+    return;
+#endif
+
     switch (event.type)
     {
     case GLEQ_WINDOW_MOVED:
