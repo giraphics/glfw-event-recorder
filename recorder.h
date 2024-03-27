@@ -110,7 +110,9 @@ bool createDirectory(const std::string& foldername);
 // Function to check if a directory exists
 bool directoryExists(const std::string& foldername);
 
-// Function to parse command line arguments
-void parseArguments(int argc, char* argv[]);
+// delete a folder
+bool deleteFolder(const std::string& folderPath);
+
+static std::string fb_screen_shot_folder_name = "screenshots";
 #endif /* GLFW_LOGGER_HEADER_FILE */
 

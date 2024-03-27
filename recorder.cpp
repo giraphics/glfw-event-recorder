@@ -37,6 +37,11 @@
 
 #define GLEQ_IMPLEMENTATION
 #include "gleq.h"
+#ifdef _WIN32 // Windows
+#include <windows.h>
+#else // Unix-based systems (Linux, macOS)
+#include <unistd.h>
+#endif
 
 using namespace std;
 
@@ -207,13 +212,13 @@ int convertGleqToGlfwEvent(int type)
 {
     switch (type)
     {
-        case GLEQ_KEY_PRESSED: return GLFW_PRESS;
-        case GLEQ_KEY_RELEASED: return GLFW_RELEASE;
-        case GLEQ_KEY_REPEATED: return GLFW_REPEAT;
-        case GLEQ_BUTTON_PRESSED: return GLFW_PRESS;
-        case GLEQ_BUTTON_RELEASED: return GLFW_RELEASE;
+    case GLEQ_KEY_PRESSED: return GLFW_PRESS;
+    case GLEQ_KEY_RELEASED: return GLFW_RELEASE;
+    case GLEQ_KEY_REPEATED: return GLFW_REPEAT;
+    case GLEQ_BUTTON_PRESSED: return GLFW_PRESS;
+    case GLEQ_BUTTON_RELEASED: return GLFW_RELEASE;
     }
-    
+
     return 0xFFFFFFFF;
 }
 
@@ -244,7 +249,7 @@ void defaultEventHandler(GLFWwindow* window, const GLEQevent& event)
 
     // The below event are recursive in nature. 
     // For example, a window move handle will spwan same event
-    if (ParseArguments::getInstance().type == RendererType::RECORD_LOG || 
+    if (ParseArguments::getInstance().type == RendererType::RECORD_LOG ||
         ParseArguments::getInstance().type == RendererType::NONE) {
         return;
     }
@@ -366,7 +371,7 @@ int playbackFromLogFileOldImplementation(GLFWwindow* window, std::string file, c
         defaultEventHandler(window, it->event);
 
         userEventHandler(it->event);
-        
+
         updateAndDraw();
     }
 
@@ -418,7 +423,7 @@ int playbackFromLogFile(GLFWwindow* window, std::string file, const std::functio
 
     std::list<TimeStampEvent> messageQueue(messageQueueVec.begin(), messageQueueVec.end());
 
-    
+
     int totalEventCount = 0;
 
     std::time_t lastEventTime = time(NULL);
@@ -480,6 +485,7 @@ int playbackFromLogFile(GLFWwindow* window, std::string file, const std::functio
 void render(GLFWwindow* window, const std::function<void()>& updateAndDraw, const std::function<void(GLEQevent)>& userEventHandler, RendererType type, std::string file)
 {
     if (type == RendererType::PLAYBACK_LOG) {
+        deleteFolder(fb_screen_shot_folder_name);
         playbackFromLogFile(window, file, updateAndDraw, userEventHandler);
     }
     else if (type == RendererType::RECORD_LOG) {
@@ -510,8 +516,7 @@ void saveTga(std::string filename, unsigned int width, unsigned int height) {
 }
 
 int savePng(std::string filename, unsigned int width, unsigned int height) {
-    std::string foldername = "screeshots";
-    createDirectory(foldername);
+    createDirectory(fb_screen_shot_folder_name);
 
     // Create a vector to store pixel data (RGBA format)
     std::vector<unsigned char> image;
@@ -544,7 +549,7 @@ int savePng(std::string filename, unsigned int width, unsigned int height) {
     short header[] = { 0, 2, 0, 0, 0, 0, (short)width, (short)height, 24 };
 
     // Encode the pixel data into a PNG file
-    unsigned error = lodepng::encode(foldername + "/" + filename, image, width, height);
+    unsigned error = lodepng::encode(fb_screen_shot_folder_name + "/" + filename, image, width, height);
 
     // Check for encoding errors
     if (error) {
@@ -582,7 +587,7 @@ int saveScreenshotToFileOrig(std::string filename, unsigned int width, unsigned 
         return 1;
     }
 
-    std::cout << "PNG file created successfully! "<< width << "x" << height << std::endl;
+    std::cout << "PNG file created successfully! " << width << "x" << height << std::endl;
     return 0;
 }
 
@@ -601,6 +606,72 @@ std::string getExecutableName(const char* fullPath) {
 
 bool directoryExists(const std::string& foldername) {
     return (_access(foldername.c_str(), 0) == 0);
+}
+
+bool deleteFolder(const std::string& dirPath) {
+    bool success = true;
+#ifdef _WIN32
+    std::string searchPath = dirPath + "\\*";
+    WIN32_FIND_DATA findFileData;
+    HANDLE hFind = FindFirstFile(searchPath.c_str(), &findFileData);
+
+    if (hFind != INVALID_HANDLE_VALUE) {
+        do {
+            if (strcmp(findFileData.cFileName, ".") != 0 && strcmp(findFileData.cFileName, "..") != 0) {
+                std::string filePath = dirPath + "\\" + findFileData.cFileName;
+                if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                    // Recursively delete subdirectories
+                    if (!deleteFolder(filePath)) {
+                        success = false;
+                    }
+                }
+                else {
+                    // Delete files
+                    if (!DeleteFile(filePath.c_str())) {
+                        success = false;
+                    }
+                }
+            }
+        } while (FindNextFile(hFind, &findFileData) != 0);
+
+        FindClose(hFind);
+    }
+
+    // Remove the empty directory
+    if (!RemoveDirectory(dirPath.c_str())) {
+        success = false;
+    }
+#else
+    DIR* dir = opendir(dirPath.c_str());
+    if (dir) {
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+                std::string filePath = dirPath + "/" + entry->d_name;
+                if (entry->d_type == DT_DIR) {
+                    // Recursively delete subdirectories
+                    if (!removeDirectory(filePath)) {
+                        success = false;
+                    }
+                }
+                else {
+                    // Delete files
+                    if (unlink(filePath.c_str()) != 0) {
+                        success = false;
+                    }
+                }
+            }
+        }
+        closedir(dir);
+    }
+
+    // Remove the empty directory
+    if (rmdir(dirPath.c_str()) != 0) {
+        success = false;
+    }
+#endif
+
+    return success;
 }
 
 bool createDirectory(const std::string& foldername)
