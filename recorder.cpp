@@ -30,17 +30,18 @@
 #include <thread>
 #include <fstream>
 #include <iostream>
-#include <direct.h> // For _mkdir()
-#include <io.h>     // For _access()
 
 #include "lodepng.h" // Include the LodePNG library
 
 #define GLEQ_IMPLEMENTATION
 #include "gleq.h"
 #ifdef _WIN32 // Windows
+#include <direct.h> // For _mkdir()
+#include <io.h>     // For _access()
 #include <windows.h>
 #else // Unix-based systems (Linux, macOS)
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
 
 using namespace std;
@@ -605,7 +606,11 @@ std::string getExecutableName(const char* fullPath) {
 }
 
 bool directoryExists(const std::string& foldername) {
+#ifdef _WIN32
     return (_access(foldername.c_str(), 0) == 0);
+#else
+    return (access(foldername.c_str(), F_OK) == 0);
+#endif
 }
 
 bool deleteFolder(const std::string& dirPath) {
@@ -642,32 +647,12 @@ bool deleteFolder(const std::string& dirPath) {
         success = false;
     }
 #else
-    DIR* dir = opendir(dirPath.c_str());
-    if (dir) {
-        struct dirent* entry;
-        while ((entry = readdir(dir)) != nullptr) {
-            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
-                std::string filePath = dirPath + "/" + entry->d_name;
-                if (entry->d_type == DT_DIR) {
-                    // Recursively delete subdirectories
-                    if (!removeDirectory(filePath)) {
-                        success = false;
-                    }
-                }
-                else {
-                    // Delete files
-                    if (unlink(filePath.c_str()) != 0) {
-                        success = false;
-                    }
-                }
-            }
-        }
-        closedir(dir);
-    }
-
-    // Remove the empty directory
-    if (rmdir(dirPath.c_str()) != 0) {
-        success = false;
+    std::string command = "rm -rf " + dirPath; // Using rm command with -rf option to recursively force delete folder and its contents 
+    int status = system(command.c_str());
+    if (status == 0) { 
+        std::cout << "Folder and its contents deleted successfully." << std::endl; return true; 
+    } else { 
+        std::cerr << "Error: Failed to delete folder and its contents." << std::endl; return false;
     }
 #endif
 
@@ -676,21 +661,30 @@ bool deleteFolder(const std::string& dirPath) {
 
 bool createDirectory(const std::string& foldername)
 {
+#ifdef _WIN32    
     if (directoryExists(foldername)) {
         std::cout << "Directory already exists." << std::endl;
         return true;
     }
 
     int status = _mkdir(foldername.c_str());
+#else
+    if (access(foldername.c_str(), F_OK) == 0) {
+        std::cout << "Directory already exists." << std::endl;
+        return true;
+    }
+
+    int status = mkdir(foldername.c_str(), 0777); // 0777 sets permissions
+#endif
 
     // Check if directory creation was successful
     if (status == 0) {
         std::cout << "Directory created successfully." << std::endl;
         return true;
-    }
-    else {
+    } else {
         std::cerr << "Error: Failed to create directory." << std::endl;
-    }
+    }    
+
     return false;
 }
 
