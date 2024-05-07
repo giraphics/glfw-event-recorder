@@ -1,6 +1,7 @@
 /*
- * GLFW_LOGGER a simple logger for GLFW 3
- * Copyright © Parminder Singh <engineer.parminder@gmail.com>
+ * GLFW_LOGGER a simple event logger for GLFW 3
+ * @copywrite 	DigiPen Institute of Technology Singapore
+ * @author		parminder.singh@digipen.edu
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
