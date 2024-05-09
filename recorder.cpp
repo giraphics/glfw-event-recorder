@@ -33,9 +33,9 @@
 #include <iostream>
 
 #include "lodepng.h" // Include the LodePNG library
-
 #define GLEQ_IMPLEMENTATION
-#include "gleq.h"
+#include <gleq.h>
+
 #ifdef _WIN32 // Windows
 #include <direct.h> // For _mkdir()
 #include <io.h>     // For _access()
