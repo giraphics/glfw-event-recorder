@@ -51,6 +51,10 @@
         GLHelper::mousepos_cb(GLHelper::ptr_window, event.pos.x, event.pos.y); \
         break; \
     } \
+    case GLEQ_WINDOW_RESIZED: { \
+        GLHelper::fbsize_cb(GLHelper::ptr_window, event.size.width, event.size.height); \
+        break; \
+    } \
     default: \
         break; \
     }
