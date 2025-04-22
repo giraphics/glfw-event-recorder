@@ -736,12 +736,12 @@ int ParseArguments::parseArguments(int argc, char* argv[])
     }
 
     if (args.help) {
-        std::cout << "Usage: " << args.exec_name << " [-h] [-f <filename>]" << " [-r ]" << " [-p ]" << std::endl;
+        std::cout << "Usage: " << args.exec_name << " [-w] [-h]" << std::endl;
         std::cout << "Options:" << std::endl;
         std::cout << "  -a, --help     Display this help message" << std::endl;
-        std::cout << "  -f, --file     Specify a record or playback filename" << std::endl;
-        std::cout << "  -r, --record   Render the executable and record event into log file" << std::endl;
-        std::cout << "  -p, --play     Render the executable and playback the event from log file" << std::endl;
+        //std::cout << "  -f, --file     Specify a record or playback filename" << std::endl;
+        //std::cout << "  -r, --record   Render the executable and record event into log file" << std::endl;
+        //std::cout << "  -p, --play     Render the executable and playback the event from log file" << std::endl;
         std::cout << "  -w, --width    Specify window width" << std::endl;
         std::cout << "  -h, --height   Specify window height" << std::endl;
         return 0;
